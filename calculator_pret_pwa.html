@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calculator Preț">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>Calculator Preț Facturare</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #1a1a1a; --bg2: #222222; --bg3: #2a2a2a;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #ececec; --text2: #999; --text3: #666;
+    --accent-bg: rgba(204,120,92,0.12); --accent-text: #e8956d;
+    --green: #4caf7d; --green-bg: rgba(76,175,125,0.12);
+    --red: #e06c6c; --amber: #d4a057;
+    --radius: 8px; --radius-lg: 12px;
+    --font: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  html, body { background: var(--bg); min-height: 100vh; min-height: -webkit-fill-available; }
+  body { color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.6; }
+  .page { padding: env(safe-area-inset-top, 1.5rem) 1.25rem env(safe-area-inset-bottom, 2rem); max-width: 640px; margin: 0 auto; padding-top: max(env(safe-area-inset-top), 1.5rem); }
+
+  .app-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
+  .app-icon { width: 36px; height: 36px; background: var(--accent-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid rgba(204,120,92,0.25); }
+  .app-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .app-sub { font-size: 12px; color: var(--text3); }
+
+  .section-title { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin: 1.75rem 0 0.75rem; }
+  .field { margin-bottom: 0.75rem; }
+  .field > label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .input-wrap { display: flex; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; transition: border-color 0.15s; }
+  .input-wrap:focus-within { border-color: rgba(255,255,255,0.3); }
+  .input-wrap input { background: transparent; border: none; outline: none; color: var(--text); font-size: 16px; font-family: var(--font); padding: 11px 14px; flex: 1; min-width: 0; }
+  .input-wrap .unit { display: flex; align-items: center; padding: 0 14px; font-size: 13px; color: var(--text3); border-left: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .hint { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+  .result-block { background: var(--accent-bg); border: 1px solid rgba(204,120,92,0.25); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin: 1.75rem 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .result-block .lbl { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .result-block .left .val { font-size: 30px; font-weight: 600; color: var(--accent-text); letter-spacing: -0.02em; }
+  .result-block .right { text-align: right; }
+  .result-block .right .val { font-size: 20px; font-weight: 500; color: var(--green); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .stat { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem 1rem; }
+  .stat .lbl { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .stat .val { font-size: 15px; font-weight: 500; color: var(--text); }
+
+  .waterfall { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 2rem; }
+  .wrow { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); gap: 8px; font-size: 13px; }
+  .wrow:last-child { border-bottom: none; }
+  .wrow .wl { color: var(--text2); flex: 1; }
+  .wrow .wv { font-weight: 500; white-space: nowrap; color: var(--text); }
+  .wrow.total { background: var(--bg3); }
+  .wrow.total .wl { color: var(--text); font-weight: 500; }
+  .wrow.final { background: var(--green-bg); }
+  .wrow.final .wl { color: var(--green); font-weight: 500; }
+  .wrow.final .wv { color: var(--green); font-size: 14px; }
+  .wrow.extra-row .wl { color: var(--amber); }
+  .wrow.extra-row .wv { color: var(--amber); }
+  .neg { color: var(--red) !important; }
+
+  .install-banner { display: none; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; align-items: center; gap: 12px; }
+  .install-banner.visible { display: flex; }
+  .install-banner p { font-size: 13px; color: var(--text2); flex: 1; }
+  .install-btn { background: var(--accent-text); color: #1a1a1a; border: none; border-radius: var(--radius); padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+  .ios-hint { display: none; font-size: 12px; color: var(--text3); text-align: center; padding: 0.75rem 1rem; margin-bottom: 1rem; background: var(--bg2); border-radius: var(--radius); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="app-header">
+    <div class="app-icon">🧮</div>
+    <div>
+      <div class="app-title">Calculator Preț</div>
+      <div class="app-sub">Firmă neplatitoare de TVA</div>
+    </div>
+  </div>
+
+  <div class="install-banner" id="installBanner">
+    <p>Instalează aplicația pe ecranul principal pentru acces rapid.</p>
+    <button class="install-btn" id="installBtn">Instalează</button>
+  </div>
+
+  <div class="ios-hint" id="iosHint">
+    📲 Pentru a instala: apasă <strong>Share</strong> → <strong>Add to Home Screen</strong>
+  </div>
+
+  <div class="section-title">Intrări</div>
+  <div class="grid2">
+    <div class="field">
+      <label>Cost materiale (cu factură)</label>
+      <div class="input-wrap"><input type="number" id="cost" value="1500" min="0" step="50" inputmode="decimal"><span class="unit">lei</span></div>
+    </div>
+    <div class="field">
+      <label>Suma dorită în buzunar</label>
+      <div class="input-wrap"><input type="number" id="net" value="8000" min="0" step="100" inputmode="decimal"><span class="unit">lei</span></div>
+    </div>
+    <div class="field">
+      <label>Plăți extra (fără factură)</label>
+      <div class="input-wrap"><input type="number" id="extra" value="0" min="0" step="50" inputmode="decimal"><span class="unit">lei</span></div>
+      <div class="hint">Achitate după dividende, din buzunar</div>
+    </div>
+  </div>
+
+  <div class="section-title">Impozite</div>
+  <div class="grid2">
+    <div class="field">
+      <label>Impozit pe profit</label>
+      <div class="input-wrap"><input type="number" id="ip" value="16" min="0" max="100" step="1" inputmode="decimal"><span class="unit">%</span></div>
+      <div class="hint">Standard 16% · Micro 1–3%</div>
+    </div>
+    <div class="field">
+      <label>Impozit pe dividende</label>
+      <div class="input-wrap"><input type="number" id="idiv" value="16" min="0" max="100" step="1" inputmode="decimal"><span class="unit">%</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">Comision</div>
+  <div class="field" style="max-width:200px;">
+    <label>Comision din preț facturat</label>
+    <div class="input-wrap"><input type="number" id="com" value="5" min="0" max="100" step="0.5" inputmode="decimal"><span class="unit">%</span></div>
+    <div class="hint">Achitat după dividende</div>
+  </div>
+
+  <div class="result-block">
+    <div class="left">
+      <div class="lbl">Preț de facturat</div>
+      <div class="val" id="pretMain">—</div>
+    </div>
+    <div class="right">
+      <div class="lbl">Rămâne în buzunar</div>
+      <div class="val" id="ramasMain">—</div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat"><div class="lbl">Impozit profit</div><div class="val" id="m1">—</div></div>
+    <div class="stat"><div class="lbl">Impozit dividende</div><div class="val" id="m2">—</div></div>
+    <div class="stat"><div class="lbl">Comision (valoare)</div><div class="val" id="m3">—</div></div>
+    <div class="stat"><div class="lbl">Plăți extra</div><div class="val" id="m5" style="color:var(--amber);">—</div></div>
+  </div>
+
+  <div class="waterfall">
+    <div class="wrow total"><span class="wl">Preț facturat</span><span class="wv" id="w0">—</span></div>
+    <div class="wrow"><span class="wl">− Cost materiale</span><span class="wv neg" id="w1">—</span></div>
+    <div class="wrow total"><span class="wl">= Profit brut</span><span class="wv" id="w2">—</span></div>
+    <div class="wrow"><span class="wl" id="lw3">− Impozit profit</span><span class="wv neg" id="w3">—</span></div>
+    <div class="wrow total"><span class="wl">= Profit net</span><span class="wv" id="w4">—</span></div>
+    <div class="wrow"><span class="wl" id="lw5">− Impozit dividende</span><span class="wv neg" id="w5">—</span></div>
+    <div class="wrow total"><span class="wl">= După dividende</span><span class="wv" id="w6">—</span></div>
+    <div class="wrow"><span class="wl" id="lw7">− Comision</span><span class="wv neg" id="w7">—</span></div>
+    <div class="wrow extra-row"><span class="wl">− Plăți extra (fără factură)</span><span class="wv" id="w9">—</span></div>
+    <div class="wrow final"><span class="wl">= Rămâne în buzunar</span><span class="wv" id="w8">—</span></div>
+  </div>
+
+</div>
+
+<script>
+// Salvare valori in localStorage
+var KEYS = ['cost','net','extra','ip','idiv','com'];
+KEYS.forEach(function(id) {
+  var saved = localStorage.getItem('calc_' + id);
+  if (saved !== null) document.getElementById(id).value = saved;
+});
+
+function fmt(n) {
+  return n.toLocaleString('ro-RO', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' lei';
+}
+
+function calc() {
+  var cost   = parseFloat(document.getElementById('cost').value)  || 0;
+  var netDor = parseFloat(document.getElementById('net').value)   || 0;
+  var extra  = parseFloat(document.getElementById('extra').value) || 0;
+  var ip     = (parseFloat(document.getElementById('ip').value)   || 0) / 100;
+  var idiv   = (parseFloat(document.getElementById('idiv').value) || 0) / 100;
+  var com    = (parseFloat(document.getElementById('com').value)  || 0) / 100;
+
+  // Salvare
+  KEYS.forEach(function(id) {
+    localStorage.setItem('calc_' + id, document.getElementById(id).value);
+  });
+
+  var ipMul = 1 - ip;
+  var idMul = 1 - idiv;
+  var denom = ipMul * idMul - com;
+  if (denom <= 0) return;
+
+  var netTotal   = netDor + extra;
+  var profitBrut = (netTotal + cost * com) / denom;
+  var pret       = profitBrut + cost;
+  var comVal     = pret * com;
+  var impProfit  = profitBrut * ip;
+  var profitNet  = profitBrut * ipMul;
+  var impDiv     = profitNet * idiv;
+  var dupaDivid  = profitNet * idMul;
+  var ramas      = dupaDivid - comVal - extra;
+
+  var ipP = (ip   * 100).toFixed(1).replace(/\.0$/,'');
+  var idP = (idiv * 100).toFixed(1).replace(/\.0$/,'');
+  var cP  = (com  * 100).toFixed(1).replace(/\.0$/,'');
+
+  document.getElementById('pretMain').textContent  = fmt(pret);
+  document.getElementById('ramasMain').textContent = fmt(ramas);
+  document.getElementById('m1').textContent = fmt(impProfit);
+  document.getElementById('m2').textContent = fmt(impDiv);
+  document.getElementById('m3').textContent = fmt(comVal);
+  document.getElementById('m5').textContent = fmt(extra);
+  document.getElementById('w0').textContent = fmt(pret);
+  document.getElementById('w1').textContent = '\u2212 ' + fmt(cost);
+  document.getElementById('w2').textContent = fmt(profitBrut);
+  document.getElementById('w3').textContent = '\u2212 ' + fmt(impProfit);
+  document.getElementById('w4').textContent = fmt(profitNet);
+  document.getElementById('w5').textContent = '\u2212 ' + fmt(impDiv);
+  document.getElementById('w6').textContent = fmt(dupaDivid);
+  document.getElementById('w7').textContent = '\u2212 ' + fmt(comVal);
+  document.getElementById('w9').textContent = '\u2212 ' + fmt(extra);
+  document.getElementById('w8').textContent = fmt(ramas);
+  document.getElementById('lw3').textContent = '\u2212 Impozit profit (' + ipP + '%)';
+  document.getElementById('lw5').textContent = '\u2212 Impozit dividende (' + idP + '%)';
+  document.getElementById('lw7').textContent = '\u2212 Comision (' + cP + '% \u00d7 pre\u021b facturat)';
+}
+
+KEYS.forEach(function(id) {
+  document.getElementById(id).addEventListener('input', calc);
+});
+calc();
+
+// PWA Install
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('visible');
+});
+
+document.getElementById('installBtn').addEventListener('click', function() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function() {
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('visible');
+    });
+  }
+});
+
+window.addEventListener('appinstalled', function() {
+  document.getElementById('installBanner').classList.remove('visible');
+});
+
+// iOS hint
+var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+var isStandalone = window.navigator.standalone;
+if (isIOS && !isStandalone) {
+  document.getElementById('iosHint').style.display = 'block';
+}
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function() {});
+}
+</script>
+</body>
+</html>
