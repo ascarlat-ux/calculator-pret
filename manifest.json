@@ -2,7 +2,7 @@
   "name": "Calculator Preț Facturare",
   "short_name": "Calculator Preț",
   "description": "Calculator preț de facturat pentru firmă neplatitoare de TVA",
-  "start_url": "./calculator_pret_pwa.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#1a1a1a",
